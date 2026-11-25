@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Simmer</string>
+    <string name="welcome_banner_desc">Editorial kitchen table with recipe book and fresh ingredients</string>
+    <string name="toggle_theme">Toggle light or dark mode</string>
+    <string name="welcome_headline">Every recipe you love, in one place.</string>
+    <string name="welcome_subtitle">Collect family favorites and web discoveries, filter by the ingredients in your kitchen, and cook offline anytime.</string>
+</resources>

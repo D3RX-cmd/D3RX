@@ -1,0 +1,6 @@
+{
+  "name": "Simmer",
+  "description": "A personal recipe book for saving homemade and online recipes with ingredient search, tags, sorting, offline viewing, and cloud sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

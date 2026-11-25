@@ -1,0 +1,100 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidRecipe(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 140 &&
+             data.description is string && data.description.size() <= 1000 &&
+             data.sourceType is string && data.sourceType in ['PERSONAL', 'ONLINE'] &&
+             (!('sourceUrl' in data) || (data.sourceUrl is string && data.sourceUrl.size() <= 1000)) &&
+             (!('sourceName' in data) || (data.sourceName is string && data.sourceName.size() <= 100)) &&
+             (!('imageUrl' in data) || (data.imageUrl is string && data.imageUrl.size() <= 1000)) &&
+             data.prepMinutes is int && data.prepMinutes >= 0 && data.prepMinutes <= 1440 &&
+             data.cookMinutes is int && data.cookMinutes >= 0 && data.cookMinutes <= 1440 &&
+             data.servings is int && data.servings >= 1 && data.servings <= 100 &&
+             data.ingredients is list && data.ingredients.size() >= 1 && data.ingredients.size() <= 100 &&
+             data.ingredients[0] is string &&
+             data.steps is list && data.steps.size() >= 1 && data.steps.size() <= 100 &&
+             data.steps[0] is string &&
+             data.tags is list && data.tags.size() <= 20 &&
+             (data.tags.size() == 0 || data.tags[0] is string) &&
+             data.favorite is bool &&
+             data.offlinePinned is bool &&
+             data.rating is int && data.rating >= 0 && data.rating <= 5 &&
+             data.notes is string && data.notes.size() <= 2000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId}/recipes/{recipeId} {
+      allow get: if isOwner(userId) && isValidId(recipeId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(recipeId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'title', 'description', 'sourceType',
+                         'prepMinutes', 'cookMinutes', 'servings',
+                         'ingredients', 'steps', 'tags',
+                         'favorite', 'offlinePinned', 'rating', 'notes',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'title', 'description', 'sourceType',
+                         'sourceUrl', 'sourceName', 'imageUrl',
+                         'prepMinutes', 'cookMinutes', 'servings',
+                         'ingredients', 'steps', 'tags',
+                         'favorite', 'offlinePinned', 'rating', 'notes',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidRecipe(incoming());
+
+      allow update: if isOwner(userId) &&
+                       isValidId(recipeId) &&
+                       isValidRecipe(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt && (
+                         incoming().diff(existing()).affectedKeys().hasOnly(['favorite', 'updatedAt']) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly(['offlinePinned', 'updatedAt']) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly(['rating', 'updatedAt']) ||
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'title', 'description', 'sourceType',
+                           'sourceUrl', 'sourceName', 'imageUrl',
+                           'prepMinutes', 'cookMinutes', 'servings',
+                           'ingredients', 'steps', 'tags',
+                           'favorite', 'offlinePinned', 'rating', 'notes',
+                           'updatedAt'
+                         ])
+                       );
+
+      allow delete: if isOwner(userId) && isValidId(recipeId);
+    }
+  }
+}

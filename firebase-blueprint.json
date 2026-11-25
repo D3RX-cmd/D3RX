@@ -1,0 +1,114 @@
+{
+  "entities": {
+    "Recipe": {
+      "title": "Recipe",
+      "description": "A personal or online-imported culinary recipe belonging to a user, synced via Cloud Firestore and cached for offline viewing.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the authenticated owner."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the recipe (1 to 140 characters)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Short summary or headnote for the recipe (up to 1000 characters)."
+        },
+        "sourceType": {
+          "type": "string",
+          "enum": ["PERSONAL", "ONLINE"],
+          "description": "Whether the recipe is a personal creation or imported/saved from online."
+        },
+        "sourceUrl": {
+          "type": "string",
+          "description": "Optional source webpage URL for online recipes."
+        },
+        "sourceName": {
+          "type": "string",
+          "description": "Optional source label or domain name."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "Optional cover image URL."
+        },
+        "prepMinutes": {
+          "type": "integer",
+          "description": "Preparation time in minutes (0 to 1440)."
+        },
+        "cookMinutes": {
+          "type": "integer",
+          "description": "Cooking time in minutes (0 to 1440)."
+        },
+        "servings": {
+          "type": "integer",
+          "description": "Number of servings (1 to 100)."
+        },
+        "ingredients": {
+          "type": "array",
+          "description": "Ordered list of recipe ingredients (1 to 100 items)."
+        },
+        "steps": {
+          "type": "array",
+          "description": "Ordered list of preparation instructions (1 to 100 items)."
+        },
+        "tags": {
+          "type": "array",
+          "description": "User-defined category/dietary tags (up to 20 tags)."
+        },
+        "favorite": {
+          "type": "boolean",
+          "description": "Whether the user marked this recipe as a favorite."
+        },
+        "offlinePinned": {
+          "type": "boolean",
+          "description": "Whether the recipe is pinned by the user for offline kitchen access."
+        },
+        "rating": {
+          "type": "integer",
+          "description": "Personal rating from 0 (unrated) to 5."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Personal kitchen notes and tweaks (up to 2000 characters)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when created (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when last updated (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "description",
+        "sourceType",
+        "prepMinutes",
+        "cookMinutes",
+        "servings",
+        "ingredients",
+        "steps",
+        "tags",
+        "favorite",
+        "offlinePinned",
+        "rating",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/recipes/{recipeId}": {
+      "schema": { "$ref": "#/entities/Recipe" },
+      "description": "User-isolated personal and online recipes subcollection."
+    }
+  }
+}
